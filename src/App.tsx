@@ -4,6 +4,21 @@ import { Header } from './components/Header';
 import { Lightbox } from './components/Lightbox';
 import { projects, Project } from './projectsData';
 
+const getAssetUrl = (path: string) => {
+  if (!path) return '';
+  if (path.startsWith('http') || path.startsWith('data:')) return path;
+  const base = import.meta.env.BASE_URL;
+  const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+  return `${base}${cleanPath}`;
+};
+
+const resolvedProjects = projects.map(p => ({
+  ...p,
+  coverImage: getAssetUrl(p.coverImage),
+  images: p.images.map(getAssetUrl)
+}));
+
+
 function App() {
   const [currentTab, setCurrentTab] = useState<string>('work');
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
@@ -23,7 +38,7 @@ function App() {
       const validTabs = ['work', 'about', 'contact'];
       
       // Check if hash matches a project ID
-      const matchingProject = projects.find(p => p.id === hash);
+      const matchingProject = resolvedProjects.find(p => p.id === hash);
       
       if (matchingProject) {
         setSelectedProjectId(matchingProject.id);
@@ -80,7 +95,7 @@ function App() {
     }, 1200);
   };
 
-  const currentProject = projects.find(p => p.id === selectedProjectId);
+  const currentProject = resolvedProjects.find(p => p.id === selectedProjectId);
 
   return (
     <div className="portfolio-app">
@@ -101,7 +116,7 @@ function App() {
               <>
 
                 <div className="projects-grid" id="projects-grid">
-                  {projects.map((project: Project) => (
+                  {resolvedProjects.map((project: Project) => (
                     <article 
                       key={project.id} 
                       className="project-card"
@@ -191,7 +206,7 @@ function App() {
               </div>
               <div className="about-image" id="about-image-wrapper">
                 <img 
-                  src="/about-portrait.jpg" 
+                  src={getAssetUrl('/about-portrait.jpg')} 
                   alt="Ritratto di Matteo Romano" 
                   loading="lazy"
                 />
